@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Government Schemes for Farmers</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-image: url('/static/image/gov.jpg');
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      backdrop-filter: blur(2px);
+    }
+  </style>
+</head>
+<body class="bg-white/70 min-h-screen p-6">
+  <div class="max-w-4xl mx-auto">
+    <!-- Back to Dashboard Button -->
+    <!-- 🔰 Glassy Transparent Navigation Bar -->
+<nav class="fixed top-0 left-0 w-full z-50 bg-white/10 backdrop-blur-md shadow-md">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-16">
+
+      <!-- Logo / Brand -->
+      <div class="flex items-center space-x-2">
+        <span class="text-black text-3xl font-bold">SmartFarm</span>
+      </div>
+
+      <!-- Navigation Links -->
+      <div class="flex space-x-6 text-sm md:text-base">
+        <a href="{{ url_for('dashboard') }}" class="text-black hover:text-green-300 transition">
+          📊 Dashboard
+        </a>
+        <a href="{{ url_for('crop_recommend') }}" class="text-black hover:text-green-300 transition">
+          🌾 Recommend Crop
+        </a>
+        <a href="{{ url_for('fertilizer_recommend') }}" class="text-black hover:text-yellow-300 transition">
+          🧪 Fertilizer
+        </a>
+      </div>
+
+    </div>
+  </div>
+</nav>
+
+<!-- Spacer so content isn't hidden behind nav -->
+<div class="h-16"></div>
+
+    <h1 class="text-4xl font-bold text-center text-green-800 mb-6">Search Government Schemes for Farmers</h1>
+
+    <input type="text" id="searchBar" onkeyup="filterSchemes()" placeholder="Search by scheme name or description..." class="w-full p-3 rounded-lg border border-green-300 mb-6">
+
+    <div id="schemesContainer" class="grid gap-6">
+      <!-- Schemes will be rendered here -->
+    </div>
+  </div>
+
+  <script>
+    const schemes = [
+      {
+        name_en: "Pradhan Mantri Fasal Bima Yojana",
+        name_hi: "प्रधानमंत्री फसल बीमा योजना",
+        desc_en: "Crop insurance scheme to protect farmers against crop failure.",
+        desc_hi: "किसानों को फसल नुकसान के खिलाफ बीमा सुरक्षा प्रदान करने वाली योजना।",
+        url: "https://pmfby.gov.in/"
+      },
+      {
+        name_en: "PM-KISAN",
+        name_hi: "प्रधानमंत्री किसान सम्मान निधि",
+        desc_en: "Provides ₹6000 per year to small and marginal farmers.",
+        desc_hi: "छोटे और सीमांत किसानों को सालाना ₹6000 प्रदान करने की योजना।",
+        url: "https://pmkisan.gov.in/"
+      },
+      {
+        name_en: "eNAM",
+        name_hi: "ई-नाम",
+        desc_en: "National Agriculture Market for online trading of agri-produce.",
+        desc_hi: "कृषि उत्पादों के ऑनलाइन व्यापार के लिए राष्ट्रीय कृषि बाजार।",
+        url: "https://enam.gov.in/"
+      },
+      {
+        name_en: "Soil Health Card Scheme",
+        name_hi: "मृदा स्वास्थ्य कार्ड योजना",
+        desc_en: "Promotes soil testing and provides information on nutrient content.",
+        desc_hi: "मिट्टी की जांच कर पोषक तत्वों की जानकारी देने वाली योजना।",
+        url: "https://soilhealth.dac.gov.in/"
+      },
+      {
+        name_en: "Kisan Credit Card (KCC)",
+        name_hi: "किसान क्रेडिट कार्ड",
+        desc_en: "Provides credit to farmers for agricultural needs.",
+        desc_hi: "किसानों को कृषि जरूरतों के लिए ऋण प्रदान करने की योजना।",
+        url: "https://pmkisan.gov.in/kcc.aspx"
+      },
+      {
+        name_en: "Rashtriya Krishi Vikas Yojana (RKVY)",
+        name_hi: "राष्ट्रीय कृषि विकास योजना",
+        desc_en: "For holistic development of agriculture and allied sectors.",
+        desc_hi: "कृषि और संबंधित क्षेत्रों के समग्र विकास के लिए योजना।",
+        url: "https://rkvy.nic.in/"
+      },
+      {
+        name_en: "National Mission on Sustainable Agriculture",
+        name_hi: "राष्ट्रीय सतत कृषि मिशन",
+        desc_en: "To promote sustainable farming practices.",
+        desc_hi: "सतत कृषि प्रथाओं को बढ़ावा देने के लिए मिशन।",
+        url: "https://nmsa.dac.gov.in/"
+      },
+      {
+        name_en: "Paramparagat Krishi Vikas Yojana (PKVY)",
+        name_hi: "परंपरागत कृषि विकास योजना",
+        desc_en: "Encourages organic farming among farmers.",
+        desc_hi: "किसानों को जैविक खेती के लिए प्रोत्साहित करने की योजना।",
+        url: "https://pgsindia-ncof.gov.in/"
+      },
+      {
+        name_en: "National Food Security Mission",
+        name_hi: "राष्ट्रीय खाद्य सुरक्षा मिशन",
+        desc_en: "Increase production of rice, wheat, pulses through improved tech.",
+        desc_hi: "चावल, गेहूं और दालों के उत्पादन को तकनीक के माध्यम से बढ़ावा।",
+        url: "https://nfsm.gov.in/"
+      },
+      {
+        name_en: "PM Krishi Sinchai Yojana",
+        name_hi: "प्रधानमंत्री कृषि सिंचाई योजना",
+        desc_en: "Aims at providing water to every field.",
+        desc_hi: "हर खेत को पानी पहुँचाने की योजना।",
+        url: "https://pmksy.gov.in/"
+      },
+      {
+  name_en: "Agricultural Infrastructure Fund",
+  name_hi: "कृषि अवसंरचना निधि",
+  desc_en: "Provides financial support to build post-harvest infrastructure like cold storage and warehouses.",
+  desc_hi: "कटाई के बाद बुनियादी ढांचे जैसे कोल्ड स्टोरेज और गोदामों के निर्माण के लिए वित्तीय सहायता प्रदान करता है।",
+  url: "https://www.agriinfra.dac.gov.in/"
+},
+{
+  name_en: "Sub-Mission on Agricultural Mechanization",
+  name_hi: "कृषि यंत्रीकरण पर उप-मिशन",
+  desc_en: "Supports the purchase of farm machinery and equipment.",
+  desc_hi: "कृषि मशीनरी और उपकरणों की खरीद के लिए सहायता प्रदान करता है।",
+  url: "https://agrimachinery.nic.in/"
+},
+{
+  name_en: "National Beekeeping and Honey Mission (NBHM)",
+  name_hi: "राष्ट्रीय मधुमक्खी पालन और शहद मिशन",
+  desc_en: "Promotes beekeeping for increasing farmers' income.",
+  desc_hi: "किसानों की आय बढ़ाने के लिए मधुमक्खी पालन को बढ़ावा देता है।",
+  url: "https://nbb.gov.in/"
+},
+{
+  name_en: "Agri-Clinics and Agri-Business Centres Scheme",
+  name_hi: "एग्री-क्लिनिक और एग्री-बिजनेस केंद्र योजना",
+  desc_en: "Encourages agripreneurs by providing training and loans.",
+  desc_hi: "कृषि उद्यमियों को प्रशिक्षण और ऋण प्रदान कर प्रोत्साहित करता है।",
+  url: "https://www.acabcs.icar.gov.in/"
+},
+{
+  name_en: "National Mission on Horticulture",
+  name_hi: "राष्ट्रीय बागवानी मिशन",
+  desc_en: "Promotes holistic growth of the horticulture sector.",
+  desc_hi: "बागवानी क्षेत्र के समग्र विकास को बढ़ावा देता है।",
+  url: "https://midh.gov.in/"
+},
+{
+  name_en: "MKSP - Mahila Kisan Sashaktikaran Pariyojana",
+  name_hi: "महिला किसान सशक्तिकरण परियोजना",
+  desc_en: "Empowers women in agriculture by providing training and livelihood support.",
+  desc_hi: "कृषि में महिलाओं को प्रशिक्षण और आजीविका सहायता देकर सशक्त बनाता है।",
+  url: "https://nrlm.gov.in/MKSP_home.aspx"
+},
+{
+  name_en: "Pandit Deendayal Upadhyay Unnat Krishi Shiksha Yojana",
+  name_hi: "पंडित दीनदयाल उपाध्याय उन्नत कृषि शिक्षा योजना",
+  desc_en: "Improves agricultural education to enhance productivity and livelihood.",
+  desc_hi: "उत्पादकता और आजीविका बढ़ाने के लिए कृषि शिक्षा में सुधार करता है।",
+  url: "https://icar.org.in/"
+},
+{
+  name_en: "Integrated Scheme for Agricultural Marketing (ISAM)",
+  name_hi: "कृषि विपणन के लिए एकीकृत योजना",
+  desc_en: "Improves market access and infrastructure for farmers.",
+  desc_hi: "किसानों के लिए विपणन पहुंच और बुनियादी ढांचे में सुधार करता है।",
+  url: "https://agricoop.gov.in/"
+},
+{
+  name_en: "Fertilizer Subsidy Scheme",
+  name_hi: "उर्वरक सब्सिडी योजना",
+  desc_en: "Subsidizes fertilizers to reduce input costs for farmers.",
+  desc_hi: "किसानों के लिए लागत को कम करने के लिए उर्वरकों पर सब्सिडी।",
+  url: "https://fert.nic.in/"
+},
+{
+  name_en: "Weather-Based Crop Insurance Scheme (WBCIS)",
+  name_hi: "मौसम आधारित फसल बीमा योजना",
+  desc_en: "Offers insurance based on weather conditions like rainfall and temperature.",
+  desc_hi: "वर्षा और तापमान जैसी मौसम स्थितियों पर आधारित बीमा प्रदान करता है।",
+  url: "https://pmfby.gov.in/"
+},
+ {
+  "name_en": "National Mission on Edible Oils – Oilseeds (NMEO–Oilseeds)",
+  "name_hi": "राष्ट्रीय खाद्य तेल मिशन – तिलहन",
+  "desc_en": "Aims to boost domestic oilseed production and achieve self-reliance in edible oils.",
+  "desc_hi": "घरेलू तिलहन उत्पादन को बढ़ावा देकर खाद्य तेलों में आत्मनिर्भरता प्राप्त करने का लक्ष्य।",
+  "url": "https://pib.gov.in/PressReleasePage.aspx?PRID=2082792"
+},
+{
+  "name_en": "National Mission on Natural Farming (NMNF)",
+  "name_hi": "राष्ट्रीय प्राकृतिक कृषि मिशन",
+  "desc_en": "Promotes natural and sustainable farming practices across the country.",
+  "desc_hi": "देशभर में प्राकृतिक और सतत कृषि प्रथाओं को बढ़ावा देने वाला मिशन।",
+  "url": "https://pib.gov.in/PressReleasePage.aspx?PRID=2082792"
+},
+{
+  "name_en": "Digital Agriculture Mission",
+  "name_hi": "डिजिटल कृषि मिशन",
+  "desc_en": "Facilitates digital infrastructure for agriculture to enhance productivity and efficiency.",
+  "desc_hi": "कृषि के लिए डिजिटल बुनियादी ढांचे को सुलभ बनाकर उत्पादकता और दक्षता में वृद्धि।",
+  "url": "https://agrospectrumindia.com/2024/09/03/cabinet-approves-7-major-schemes-for-farmers-with-total-outlay-of-rs-14235-30-cr.html"
+},
+{
+  "name_en": "Pradhan Mantri Kisan Maandhan Yojana (PM-KMY)",
+  "name_hi": "प्रधानमंत्री किसान मानधन योजना",
+  "desc_en": "Provides pension to small and marginal farmers upon reaching 60 years of age.",
+  "desc_hi": "छोटे और सीमांत किसानों को 60 वर्ष की आयु प्राप्त करने पर पेंशन प्रदान करने वाली योजना।",
+  "url": "https://pib.gov.in/PressReleasePage.aspx?PRID=2002012"
+},
+{
+  "name_en": "Interest Subvention Scheme",
+  "name_hi": "ब्याज अनुदान योजना",
+  "desc_en": "Provides short-term credit to farmers at subsidized interest rates.",
+  "desc_hi": "किसानों को रियायती ब्याज दरों पर अल्पकालिक ऋण प्रदान करने की योजना।",
+  "url": "https://www.nabard.org/content1.aspx?catid=23&id=23&mid=530"
+},
+{
+  "name_en": "National Livestock Mission – Entrepreneurship Development & Employment Generation (NLM-EDEG)",
+  "name_hi": "राष्ट्रीय पशुधन मिशन – उद्यमिता विकास एवं रोजगार सृजन",
+  "desc_en": "Supports entrepreneurship in the livestock sector to generate employment.",
+  "desc_hi": "पशुधन क्षेत्र में उद्यमिता को समर्थन देकर रोजगार सृजन को बढ़ावा देना।",
+  "url": "https://www.nabard.org/content1.aspx?catid=23&id=23&mid=530"
+},
+{
+  "name_en": "Dairy Entrepreneurship Development Scheme (DEDS)",
+  "name_hi": "डेयरी उद्यमिता विकास योजना",
+  "desc_en": "Promotes dairy farming by providing financial assistance for setting up modern dairy farms.",
+  "desc_hi": "आधुनिक डेयरी फार्म स्थापित करने के लिए वित्तीय सहायता प्रदान कर डेयरी खेती को बढ़ावा देना।",
+  "url": "https://www.nabard.org/content1.aspx?catid=23&id=23&mid=530"
+},
+{
+  "name_en": "National Mission for Sustainable Agriculture (NMSA)",
+  "name_hi": "राष्ट्रीय सतत कृषि मिशन",
+  "desc_en": "Aims to promote sustainable agriculture practices adaptable to climate change.",
+  "desc_hi": "जलवायु परिवर्तन के अनुकूल सतत कृषि प्रथाओं को बढ़ावा देने का मिशन।",
+  "url": "https://nmsa.dac.gov.in/"
+},
+{
+  "name_en": "Paramparagat Krishi Vikas Yojana (PKVY)",
+  "name_hi": "परंपरागत कृषि विकास योजना",
+  "desc_en": "Encourages organic farming through cluster-based approach.",
+  "desc_hi": "समूह आधारित दृष्टिकोण से जैविक खेती को प्रोत्साहित करने वाली योजना।",
+  "url": "https://pgsindia-ncof.gov.in/"
+},
+{
+  "name_en": "Pradhan Mantri Matsya Sampada Yojana (PMMSY)",
+  "name_hi": "प्रधानमंत्री मत्स्य संपदा योजना",
+  "desc_en": "Aims to enhance fish production and create employment in the fisheries sector.",
+  "desc_hi": "मत्स्य उत्पादन बढ़ाने और मत्स्य क्षेत्र में रोजगार सृजन का लक्ष्य।",
+  "url": "https://dof.gov.in/pmmsy"
+},
+{
+      "name_en": "Namo Drone Didi",
+      "name_hi": "नमो ड्रोन दीदी",
+      "desc_en": "Promotes use of drones in agriculture to increase efficiency and reduce manual labor.",
+      "desc_hi": "कृषि में ड्रोन के उपयोग को बढ़ावा देने के लिए यह योजना शुरू की गई है जिससे कार्यक्षमता बढ़े और श्रम की आवश्यकता कम हो।",
+      "url": "https://pib.gov.in/PressReleasePage.aspx?PRID=2101841"
+    },
+    {
+      "name_en": "Formation and Promotion of 10,000 FPOs",
+      "name_hi": "10,000 किसान उत्पादक संगठन योजना",
+      "desc_en": "Empowers small and marginal farmers by organizing them into FPOs for better market access.",
+      "desc_hi": "छोटे और सीमांत किसानों को एफपीओ में संगठित कर बेहतर बाजार तक पहुंच और संसाधनों की सुविधा देना।",
+      "url": "https://pib.gov.in/PressReleasePage.aspx?PRID=2101841"
+    },
+    {
+      "name_en": "PM-AASHA",
+      "name_hi": "प्रधानमंत्री अन्नदाता आय संरक्षण अभियान",
+      "desc_en": "Ensures Minimum Support Price (MSP) through schemes like PSS, PDPS, and PPPS.",
+      "desc_hi": "किसानों को न्यूनतम समर्थन मूल्य सुनिश्चित करने के लिए यह योजना बनाई गई है जिसमें पीएसएस, पीडीपीएस और पीपीपीएस शामिल हैं।",
+      "url": "https://pib.gov.in/PressReleasePage.aspx?PRID=2101841"
+    },
+    {
+      "name_en": "Dhan-Dhaanya Scheme",
+      "name_hi": "धन-धान्य योजना",
+      "desc_en": "Aims to improve food grain storage and supply chain infrastructure.",
+      "desc_hi": "अनाज भंडारण और आपूर्ति श्रृंखला को बेहतर बनाने के लिए 2025-26 के बजट में शुरू की गई योजना।",
+      "url": "https://www.downtoearth.org.in/agriculture/agriculture-takes-centre-stage-in-budget-2025-26-with-9-new-missions"
+    },
+    {
+      "name_en": "National Mission for High-Yielding Seeds",
+      "name_hi": "उच्च उपज बीजों के लिए राष्ट्रीय मिशन",
+      "desc_en": "Focuses on developing and distributing high-yield seeds to increase productivity.",
+      "desc_hi": "उच्च उत्पादकता वाले बीज विकसित और वितरित करने पर केंद्रित एक नई योजना।",
+      "url": "https://www.reuters.com/world/india/india-budget-india-unveils-long-term-programmes-boost-pulses-cotton-output-2025-02-01"
+    },
+    {
+      "name_en": "Urea Subsidy Scheme",
+      "name_hi": "यूरिया सब्सिडी योजना",
+      "desc_en": "Provides urea to farmers at subsidized prices to lower input costs.",
+      "desc_hi": "किसानों को कम लागत में उर्वरक उपलब्ध कराने के लिए यह योजना शुरू की गई है।",
+      "url": "https://www.jaagrukbharat.com/list-of-top-agriculture-schemes-in-india-2024-with-features-eligibility-1402163"
+    },
+    {
+      "name_en": "Krishak Unnati Yojana (Chhattisgarh)",
+      "name_hi": "कृषक उन्नति योजना (छत्तीसगढ़)",
+      "desc_en": "Offers ₹3100 per quintal for paddy procurement to ensure better income for farmers.",
+      "desc_hi": "किसानों से धान की खरीद ₹3100 प्रति क्विंटल की दर से की जा रही है।",
+      "url": "https://en.wikipedia.org/wiki/Vishnu_Deo_Sai"
+    },
+    {
+      "name_en": "Mahatari Vandan Yojana (Chhattisgarh)",
+      "name_hi": "महतारी वंदन योजना (छत्तीसगढ़)",
+      "desc_en": "Provides ₹1000 monthly to women for their economic empowerment.",
+      "desc_hi": "महिलाओं को आर्थिक रूप से सशक्त बनाने के लिए ₹1000 प्रति माह की सहायता।",
+      "url": "https://en.wikipedia.org/wiki/Vishnu_Deo_Sai"
+    }
+
+
+
+      // Add up to 50 or more similarly
+    ];
+
+    function filterSchemes() {
+      const query = document.getElementById("searchBar").value.toLowerCase();
+      const container = document.getElementById("schemesContainer");
+      container.innerHTML = "";
+
+      schemes.forEach(scheme => {
+        const content = (scheme.name_en + scheme.name_hi + scheme.desc_en + scheme.desc_hi).toLowerCase();
+        if (content.includes(query)) {
+          const schemeEl = `
+            <div class="p-5 bg-white rounded-xl shadow-md border-l-4 border-green-500">
+              <h2 class="text-xl font-semibold text-green-800">${scheme.name_en}</h2>
+              <h3 class="text-md text-green-600 mb-1">${scheme.name_hi}</h3>
+              <p class="text-gray-700 text-sm">${scheme.desc_en}</p>
+              <p class="text-gray-600 text-sm italic mb-2">${scheme.desc_hi}</p>
+              <a href="${scheme.url}" target="_blank" class="text-blue-600 hover:underline">Visit Official Site</a>
+            </div>
+          `;
+          container.innerHTML += schemeEl;
+        }
+      });
+    }
+
+    // Initial render
+    window.onload = filterSchemes;
+  </script>
+</body>
+</html>

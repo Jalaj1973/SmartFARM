@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Live Sensor Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <link rel="stylesheet" href="../static/css/dash-style.css" />
+  <style>
+    .circle-wrapper {
+      width: 180px;
+      height: 180px;
+      position: relative;
+      border-radius: 50%;
+      overflow: hidden;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.15); 
+      transition: transform 0.3s;
+    }
+
+    .circle-wrapper:hover {
+      transform: scale(1.05);
+    }
+
+    .circle-fill {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      clip-path: inset(100% 0 0 0);
+      transition: clip-path 1s ease-in-out;
+      z-index: 1;
+    }
+
+    .circle-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 1.3rem;
+      font-weight: bold;
+      text-align: center;
+      z-index: 2;
+    }
+
+    .glow-blue {
+      background: radial-gradient(circle, #3b82f6 0%, #1e3a8a 100%);
+      box-shadow: 0 0 30px rgba(59, 130, 246, 0.7);
+    }
+
+    .glow-green {
+      background: radial-gradient(circle, #22c55e 0%, #065f46 100%);
+      box-shadow: 0 0 30px rgba(34, 197, 94, 0.7);
+    }
+
+    .glow-red {
+      background: radial-gradient(circle, #ef4444 0%, #7f1d1d 100%);
+      box-shadow: 0 0 30px rgba(239, 68, 68, 0.7);
+    }
+
+    body {
+      background-image: url("/static/image/famr.jpeg");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+
+    .bg-overlay {
+      background-color: rgba(255, 255, 255, 0.9);
+      padding: 2rem;
+      border-radius: 1rem;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    }
+    
+  </style>
+  <style>
+    .goog-logo-link, .goog-te-gadget span {
+      display: none !important;
+    }
+    .goog-te-gadget {
+      color: transparent !important;
+    }
+  </style>
+  
+  <script type="text/javascript">
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement(
+        {
+          pageLanguage: "en",
+          includedLanguages: "en,hi",
+          layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+        },
+        "google_translate_element"
+      );
+    }
+  </script>
+  <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+  
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen relative">
+
+
+
+  <div class="bg-overlay">
+    <h1 class="text-slate-800 text-3xl md:text-4xl font-bold mb-8 text-center drop-shadow">
+      Live Sensor Dashboard
+    </h1>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+
+      <!-- Humidity -->
+      <div class="circle-wrapper bg-white">
+        <div id="humidityFill" class="circle-fill glow-blue"></div>
+        <div class="circle-text text-black">
+          <div id="humidityValue">--%</div>
+          <div class="text-sm opacity-80">Humidity</div>
+        </div>
+      </div>
+
+      <!-- Moisture -->
+      <div class="circle-wrapper bg-white">
+        <div id="moistureFill" class="circle-fill glow-green"></div>
+        <div class="circle-text text-black">
+          <div id="moistureValue">--%</div>
+          <div class="text-sm opacity-80">Moisture</div>
+        </div>
+      </div>
+
+      <!-- Temperature -->
+      <div class="circle-wrapper bg-white">
+        <div id="temperatureFill" class="circle-fill glow-red"></div>
+        <div class="circle-text text-black">
+          <div id="temperatureValue">--°C</div>
+          <div class="text-sm opacity-80">Temp</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Smart Alerts -->
+<div id="alerts" class="mt-8 w-full max-w-2xl bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-md text-center text-base font-medium space-y-2">
+  <h2 class="text-xl font-bold text-red-700">⚠️ Smart Alerts</h2>
+  <div id="alertMessages" class="text-slate-700"></div>
+</div>
+
+<!-- 🔰 Glassy Transparent Navigation Bar -->
+<nav class="fixed top-0 left-0 w-full z-50 bg-white/10 backdrop-blur-md shadow-md">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-16">
+
+      <!-- Logo / Brand -->
+      <div class="flex items-center space-x-2">
+        
+        <span class="text-black text-3xl font-bold">SmartFarm</span>
+      </div>
+
+      <!-- Navigation Links -->
+      <div class="flex space-x-6 text-sm md:text-base">
+        <a href="{{ url_for('dashboard') }}" class="text-black hover:text-green-300 transition">
+          📊 Dashboard
+        </a>
+        <a href="{{ url_for('crop_recommend') }}" class="text-black hover:text-green-300 transition">
+          🌾 Recommend Crop
+        </a>
+        <a href="{{ url_for('fertilizer_recommend') }}" class="text-black hover:text-yellow-300 transition">
+          🧪 Fertilizer
+        </a>
+      </div>
+
+    </div>
+  </div>
+</nav>
+
+<!-- Spacer so content isn't hidden behind nav -->
+<div class="h-16"></div>
+
+
+
+
+<!-- Disease Detection Section -->
+<!-- Right Sidebar Cards -->
+<div class="fixed top-20 right-4 space-y-4 w-72 z-50">
+
+  <!-- 🌐 Language Toggle -->
+<div id="google_translate_element" class="text-right mb-2"></div>
+
+  <!-- Weather Lookup Card -->
+  <div id="weather-card" class="bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-md text-sm text-slate-800">
+    <h2 class="font-bold text-green-700 mb-2">🌦 Weather Lookup</h2>
+
+    <div class="mb-2">
+      <input type="text" id="city-input" placeholder="Enter city..." class="w-full p-2 rounded border border-green-300">
+      <button onclick="loadWeather()" class="mt-2 w-full bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded transition">
+        🔍 Get Weather
+      </button>
+    </div>
+
+    <div id="weather-content" class="mt-2">No data yet</div>
+  </div>
+
+  <!-- Disease Detection Card -->
+  <div id="disease-card" class="bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-md text-sm text-slate-800">
+    <h2 class="font-bold text-green-700 mb-2 text-center">🌿 Disease Detector</h2>
+
+    <input type="file" accept="image/*" id="imageUpload" class="w-full mb-2 text-sm border border-green-300 rounded p-1">
+
+    <div id="previewContainer" class="mb-2 hidden">
+      <img id="imagePreview" src="" alt="Leaf Preview" class="w-full h-40 object-contain border rounded shadow">
+    </div>
+
+    <button onclick="detectDisease()" class="mt-2 w-full bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded transition">
+      🔍 Detect Disease
+    </button>
+
+    <div id="diseaseResult" class="mt-2 text-center text-red-700 font-medium"></div>
+  </div>
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script>
+  function fillCircle(id, value, max) {
+    const fillElem = document.getElementById(id);
+    const percent = value / max;
+    const fillPercent = 100 - (percent * 100);
+    fillElem.style.clipPath = `inset(${fillPercent}% 0 0 0)`;
+  }
+
+  function updateValues() {
+    const humidity = Math.floor(Math.random() * 101);
+    const moisture = Math.floor(Math.random() * 101);
+    const temperature = +(Math.random() * 50).toFixed(1);
+
+    document.getElementById("humidityValue").textContent = `${humidity}%`;
+    document.getElementById("moistureValue").textContent = `${moisture}%`;
+    document.getElementById("temperatureValue").textContent = `${temperature}°C`;
+
+    fillCircle("humidityFill", humidity, 100);
+    fillCircle("moistureFill", moisture, 100);
+    fillCircle("temperatureFill", temperature, 50);
+
+    showAlerts(temperature, moisture);
+  }
+
+  function showAlerts(temp, moisture) {
+    const alertBox = document.getElementById("alertMessages");
+    let alerts = "";
+
+    if (temp > 40) {
+      alerts += `<div class="animate-pulse text-red-600 font-semibold">🔥 High Temperature Alert: ${temp}°C</div>`;
+    }
+
+    if (moisture < 30) {
+      alerts += `<div class="animate-bounce text-orange-600 font-semibold">🌱 Low Soil Moisture: ${moisture}%</div>`;
+    }
+
+    if (!alerts) {
+      alerts = `<div class="text-green-700 font-semibold">✅ All conditions normal</div>`;
+    }
+
+    alertBox.innerHTML = alerts;
+  }
+
+  updateValues();
+  setInterval(updateValues, 2000);
+</script>
+
+
+<div class="w-full mt-12 p-6 bg-white/80 backdrop-blur-md rounded-xl shadow-md max-w-4xl">
+  <h2 class="text-xl font-bold text-green-800 mb-4 text-center">👨‍🌾 Farmer Tip of the Moment</h2>
+  <div id="tip-box" class="text-center text-lg font-medium text-gray-800 italic transition-opacity duration-500">
+    <!-- Tip text will rotate here -->
+  </div>
+</div>
+
+<script>
+  const tips = [
+    "🌱 Use mulch to retain soil moisture during summer.",
+    "💧 Water early in the morning or late evening to reduce evaporation.",
+    "🌾 Rotate crops every season to improve soil health.",
+    "🪴 Neem oil is a natural pesticide to control pests organically.",
+    "🌿 Test soil regularly for nutrient levels.",
+    "☁️ Harvest rainwater to ensure water availability during dry spells.",
+    "🐛 Check leaves weekly to catch pests before infestation.",
+    "🔥 Don’t burn crop residue – convert it to compost instead.",
+    "🚜 Maintain equipment regularly to avoid breakdown during peak farming.",
+    "📱 Use weather apps to plan irrigation and pesticide spraying effectively."
+  ];
+
+  let tipIndex = 0;
+  const tipBox = document.getElementById("tip-box");
+
+  function showNextTip() {
+    tipBox.style.opacity = 0;
+    setTimeout(() => {
+      tipBox.textContent = tips[tipIndex];
+      tipBox.style.opacity = 1;
+      tipIndex = (tipIndex + 1) % tips.length;
+    }, 400);
+  }
+
+  showNextTip();
+  setInterval(showNextTip, 4000);
+</script>
+
+
+<script>
+  async function loadWeather() {
+    const apiKey = "9736d84f2b387d052f9dfbfaea880970"; // replace with your actual OpenWeatherMap API key
+    const city = document.getElementById("city-input").value.trim() || "Delhi";
+    const weatherBox = document.getElementById("weather-content");
+    weatherBox.innerHTML = "Loading...";
+
+    try {
+      const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`);
+      const data = await res.json();
+
+      if (data.cod !== 200) {
+        weatherBox.innerHTML = "❌ City not found.";
+        return;
+      }
+
+      const temp = data.main.temp + "°C";
+      const wind = data.wind.speed + " m/s";
+      const condition = data.weather[0].main;
+      const sunrise = new Date(data.sys.sunrise * 1000).toLocaleTimeString();
+      const sunset = new Date(data.sys.sunset * 1000).toLocaleTimeString();
+      const rain = data.rain && data.rain["1h"] ? `${data.rain["1h"]} mm` : "No rain";
+
+      weatherBox.innerHTML = `
+        <div><strong>City:</strong> ${city}</div>
+        <div><strong>Temp:</strong> ${temp}</div>
+        <div><strong>Condition:</strong> ${condition}</div>
+        <div><strong>Rain:</strong> ${rain}</div>
+        <div><strong>Wind:</strong> ${wind}</div>
+        <div><strong>Sunrise:</strong> ${sunrise}</div>
+        <div><strong>Sunset:</strong> ${sunset}</div>
+      `;
+    } catch (err) {
+      weatherBox.innerHTML = "⚠️ Error getting weather.";
+    }
+  }
+
+  document.getElementById("imageUpload").addEventListener("change", function (event) {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+    const preview = document.getElementById("imagePreview");
+    const container = document.getElementById("previewContainer");
+
+    reader.onload = function (e) {
+      preview.src = e.target.result;
+      container.classList.remove("hidden");
+    };
+
+    if (file) reader.readAsDataURL(file);
+  });
+
+  function detectDisease() {
+    const diseases = [
+      "Leaf Spot (Early Stage)",
+      "Rust Infection",
+      "Blight",
+      "Powdery Mildew",
+      "Downy Mildew",
+      "Yellow Mosaic Virus",
+      "Healthy 🌿"
+    ];
+    const random = diseases[Math.floor(Math.random() * diseases.length)];
+    document.getElementById("diseaseResult").textContent = `🦠 ${random}`;
+  }
+</script>
+
+</body>
+</html>

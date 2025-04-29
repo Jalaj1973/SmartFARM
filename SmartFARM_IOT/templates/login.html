@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SmartFarm Login/Signup</title>
+    <link rel="stylesheet" href="../static/css/styles.css" />
+    <link rel="icon" type="image/png" href="../static/image/user-logo.png" />
+    <style>
+      html {
+        scroll-behavior: smooth;
+      }
+
+      .translate-section {
+        margin-left: auto;
+      }
+
+      /* Styles for the language dropdown */
+      #google_translate_element {
+        display: inline-block;
+        z-index: 1001; /* Ensure it's above the header */
+      }
+
+      #google_translate_element select {
+        padding: 8px 12px;
+        border: none;
+        border-radius: 5px;
+        background-color: white; /* White background for dropdown */
+        color: #333; /* Dark text color */
+        font-size: 14px; /* Font size */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Shadow for depth */
+        transition: background-color 0.3s ease; /* Smooth transition */
+      }
+
+      #google_translate_element select:hover {
+        background-color: white; /* Light grey on hover */
+      }
+
+      /* Hide "Powered by Google Translate" */
+      .skiptranslate > iframe.skiptranslate {
+        display: none !important; /* Hides iframe that shows the "Powered by Google Translate" */
+      }
+
+      /* For hiding the original text */
+      body {
+        top: 0 !important; /* To prevent any unnecessary space */
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Language selection dropdown with Google Translate -->
+    <div class="translate-section" id="google_translate_element"></div>
+    <div class="container" id="container">
+      <div class="left">
+        <div class="overlay">
+          <p class="quote">
+            “Empowering farmers with AI-driven crop recommendations and yield
+            predictions for a smarter agriculture future.”
+          </p>
+          <p class="author">AgroSmart Team</p>
+        </div>
+      </div>
+      <div class="right">
+        <!-- Display Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %} {% if
+        messages %}
+        <div class="flash-messages">
+          {% for category, message in messages %}
+          <div class="flash-message {{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+        {% endif %} {% endwith %}
+        <!-- Signup Form -->
+        <div class="form-container signup-form" id="signup-form">
+          <h1>Welcome to SmartFarm</h1>
+          <p class="subtitle">Sign up for personalized crop recommendations.</p>
+          <form method="POST" action="{{ url_for('signup') }}">
+            <label for="email">Email:</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              placeholder="Enter your email"
+              required
+            />
+
+            <label for="first-name">Username:</label>
+            <input
+              type="text"
+              id="first-name"
+              name="first-name"
+              placeholder="Enter your Username"
+              required
+            />
+
+            <label for="password">Password:</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              placeholder="Enter your password"
+              required
+            />
+
+            <button type="submit">Continue to your free account</button>
+          </form>
+          <p class="login">
+            Already have an account? <a href="#" id="show-login">Sign in</a>
+          </p>
+        </div>
+
+        <!-- Login Form -->
+        <div class="form-container login-form" id="login-form">
+          <h1>Sign In</h1>
+          <p class="subtitle">Enter your credentials to access your account.</p>
+          <form method="POST" action="{{ url_for('login') }}">
+            <label for="login-username">Username:</label>
+            <input
+              type="text"
+              id="login-username"
+              name="username"
+              placeholder="Enter your Username"
+              required
+            />
+
+            <label for="login-password">Password:</label>
+            <input
+              type="password"
+              id="login-password"
+              name="password"
+              placeholder="Enter your password"
+              required
+            />
+
+            <button type="submit">Sign In</button>
+          </form>
+          <p class="signup">
+            Don't have an account? <a href="#" id="show-signup">Sign up</a>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flash Messages Styling -->
+    <style>
+      .flash-messages {
+        position: fixed;
+        bottom: 5px;
+        right: 240px;
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 10px;
+        z-index: 1000;
+        width: 300px;
+        text-align: center;
+      }
+      .flash-message {
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 10px;
+        font-size: 16px;
+      }
+      .flash-message.error {
+        background-color: #f8d7da;
+        color: #721c24;
+      }
+      .flash-message.success {
+        background-color: #d4edda;
+        color: #155724;
+      }
+    </style>
+
+    <!-- Notification Popup -->
+    <div class="notification" id="notification">
+      <p id="notification-message">Login successful!</p>
+      <button onclick="closeNotification()">×</button>
+    </div>
+
+    <script>
+      const container = document.getElementById("container");
+      const showLogin = document.getElementById("show-login");
+      const showSignup = document.getElementById("show-signup");
+
+      showLogin.addEventListener("click", (e) => {
+        e.preventDefault();
+        container.classList.add("active");
+      });
+
+      showSignup.addEventListener("click", (e) => {
+        e.preventDefault();
+        container.classList.remove("active");
+      });
+
+      // Check query parameter to toggle forms after redirection
+      const urlParams = new URLSearchParams(window.location.search);
+      const formParam = urlParams.get("form");
+
+      if (formParam === "login") {
+        container.classList.add("active"); // Show login form
+      } else {
+        container.classList.remove("active"); // Show signup form by default
+      }
+
+      function closeNotification() {
+        const notification = document.getElementById("notification");
+        notification.classList.remove("show");
+      }
+    </script>
+
+    <!-- Google Translate Script -->
+    <script type="text/javascript">
+      function googleTranslateElementInit() {
+        new google.translate.TranslateElement(
+          {
+            pageLanguage: "en",
+            includedLanguages: "en,hi,mr",
+            layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+          },
+          "google_translate_element"
+        );
+
+        // Store the selected language in local storage
+        function setLanguage(lang) {
+          localStorage.setItem("preferredLanguage", lang);
+        }
+
+        // Retrieve the preferred language from local storage
+        function getPreferredLanguage() {
+          return localStorage.getItem("preferredLanguage") || "en"; // Default to English
+        }
+
+        // Load the selected language on page load
+        window.onload = function () {
+          const preferredLanguage = getPreferredLanguage();
+          if (preferredLanguage) {
+            document.querySelector("#google_translate_element select").value =
+              preferredLanguage; // Set the dropdown to the stored language
+            setLanguage(preferredLanguage); // Call setLanguage function to store it
+          }
+        };
+
+        // Add event listener to the dropdown to save the selected language
+        document.addEventListener("change", function (event) {
+          if (event.target.matches("#google_translate_element select")) {
+            setLanguage(event.target.value);
+          }
+        });
+      }
+    </script>
+    <script
+      type="text/javascript"
+      src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
+    ></script>
+  </body>
+</html>
