@@ -141,6 +141,16 @@
 <div id="alerts" class="mt-8 w-full max-w-2xl bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-md text-center text-base font-medium space-y-2">
   <h2 class="text-xl font-bold text-red-700">⚠️ Smart Alerts</h2>
   <div id="alertMessages" class="text-slate-700"></div>
+   <!-- pump -->
+  <div class="text-center mt-8">
+  <button onclick="togglePump('on')" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+    Turn ON Pump
+  </button>
+  <button onclick="togglePump('off')" class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 ml-4">
+    Turn OFF Pump
+  </button>
+  <div id="pumpStatus" class="mt-4 text-lg text-gray-700"></div>
+</div>
 </div>
 
 <!-- 🔰 Glassy Transparent Navigation Bar -->
@@ -198,22 +208,37 @@
     <div id="weather-content" class="mt-2">No data yet</div>
   </div>
 
-  <!-- Disease Detection Card -->
-  <div id="disease-card" class="bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-md text-sm text-slate-800">
-    <h2 class="font-bold text-green-700 mb-2 text-center">🌿 Disease Detector</h2>
+ <!-- Disease Detection Card -->
+<!-- Disease Detection Card -->
+<div id="disease-card" class="bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-md text-sm text-slate-800">
+  <h2 class="font-bold text-green-700 mb-2 text-center">🌿 Disease Detector</h2>
 
-    <input type="file" accept="image/*" id="imageUpload" class="w-full mb-2 text-sm border border-green-300 rounded p-1">
+  <!-- Form to POST to Flask backend -->
+  <form action="/predict-leaf-disease" method="POST" enctype="multipart/form-data">
+    <input type="file" accept="image/*" name="image" id="imageUpload" class="w-full mb-2 text-sm border border-green-300 rounded p-1" required>
 
     <div id="previewContainer" class="mb-2 hidden">
       <img id="imagePreview" src="" alt="Leaf Preview" class="w-full h-40 object-contain border rounded shadow">
     </div>
 
-    <button onclick="detectDisease()" class="mt-2 w-full bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded transition">
+    <button type="submit" class="mt-2 w-full bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded transition">
       🔍 Detect Disease
     </button>
+  </form>
 
-    <div id="diseaseResult" class="mt-2 text-center text-red-700 font-medium"></div>
-  </div>
+  <!-- Display prediction and uploaded image if available -->
+  {% if prediction %}
+    <div class="mt-4 text-center text-green-700 font-semibold">
+      🧪 Prediction Result: {{ prediction }}
+    </div>
+
+    <div class="mt-2">
+      <img src="{{ image_path }}" alt="Uploaded Leaf" class="w-40 mx-auto rounded shadow">
+    </div>
+  {% endif %}
+</div>
+
+
 
 
 
@@ -240,20 +265,27 @@
     fillElem.style.clipPath = `inset(${fillPercent}% 0 0 0)`;
   }
 
-  function updateValues() {
-    const humidity = Math.floor(Math.random() * 101);
-    const moisture = Math.floor(Math.random() * 101);
-    const temperature = +(Math.random() * 50).toFixed(1);
+  async function updateValues() {
+    try {
+      const res = await fetch('/sensor-data');
+      const data = await res.json();
 
-    document.getElementById("humidityValue").textContent = `${humidity}%`;
-    document.getElementById("moistureValue").textContent = `${moisture}%`;
-    document.getElementById("temperatureValue").textContent = `${temperature}°C`;
+      const humidity = data.humidity;
+      const moisture = data.moisture;
+      const temperature = data.temperature;
 
-    fillCircle("humidityFill", humidity, 100);
-    fillCircle("moistureFill", moisture, 100);
-    fillCircle("temperatureFill", temperature, 50);
+      document.getElementById("humidityValue").textContent = `${humidity}%`;
+      document.getElementById("moistureValue").textContent = `${moisture}%`;
+      document.getElementById("temperatureValue").textContent = `${temperature}°C`;
 
-    showAlerts(temperature, moisture);
+      fillCircle("humidityFill", humidity, 100);
+      fillCircle("moistureFill", moisture, 100);
+      fillCircle("temperatureFill", temperature, 50);
+
+      showAlerts(temperature, moisture);
+    } catch (err) {
+      console.error("Failed to fetch sensor data:", err);
+    }
   }
 
   function showAlerts(temp, moisture) {
@@ -275,8 +307,8 @@
     alertBox.innerHTML = alerts;
   }
 
-  updateValues();
-  setInterval(updateValues, 2000);
+  updateValues(); // initial call
+  setInterval(updateValues, 5000); // auto-update every 5 seconds
 </script>
 
 
@@ -354,7 +386,8 @@
       weatherBox.innerHTML = "⚠️ Error getting weather.";
     }
   }
-
+</script>
+<script>
   document.getElementById("imageUpload").addEventListener("change", function (event) {
     const file = event.target.files[0];
     const reader = new FileReader();
@@ -368,21 +401,16 @@
 
     if (file) reader.readAsDataURL(file);
   });
-
-  function detectDisease() {
-    const diseases = [
-      "Leaf Spot (Early Stage)",
-      "Rust Infection",
-      "Blight",
-      "Powdery Mildew",
-      "Downy Mildew",
-      "Yellow Mosaic Virus",
-      "Healthy 🌿"
-    ];
-    const random = diseases[Math.floor(Math.random() * diseases.length)];
-    document.getElementById("diseaseResult").textContent = `🦠 ${random}`;
-  }
 </script>
 
+<script>
+  function togglePump(state) {
+    fetch(`/toggle-pump/${state}`)
+      .then(response => response.text())
+      .then(data => {
+        document.getElementById("pumpStatus").textContent = data;
+      });
+  }
+</script>
 </body>
 </html>
