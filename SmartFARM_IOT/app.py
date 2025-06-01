@@ -11,12 +11,62 @@ import io
 import base64
 import matplotlib
 import plotly.express as px
+import cv2
+import tensorflow as tf
+import os
+import requests
+from werkzeug.utils import secure_filename
 matplotlib.use('Agg')  # Use non-GUI backend
 
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Change this to a strong secret key
+BLYNK_AUTH_TOKEN = '8VDegcvSkywp6--o9uGILoEMy1MXmGbx'
 
+def get_blynk_value(vpin):
+    url = f'https://blynk.cloud/external/api/get?token={BLYNK_AUTH_TOKEN}&{vpin}'
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            return response.text
+        else:
+            return "N/A"
+    except Exception as e:
+        return "Error"
+
+
+@app.route('/sensor-data')
+def sensor_data():
+    temperature = get_blynk_value('v0')
+    humidity = get_blynk_value('v1')
+    moisture = get_blynk_value('v3')
+
+    return jsonify({
+        'temperature': float(temperature),
+        'humidity': int(humidity),
+        'moisture': int(moisture)
+    })
+
+
+def set_blynk_value(vpin, value):
+    url = f"https://blynk.cloud/external/api/update?token={BLYNK_AUTH_TOKEN}&{vpin}={value}"
+    try:
+        response = requests.get(url)
+        return response.status_code == 200
+    except Exception as e:
+        return False
+
+@app.route('/toggle-pump/<state>')
+def toggle_pump(state):
+    if state == "on":
+        success = set_blynk_value('v5', 1)
+    else:
+        success = set_blynk_value('v5', 0)
+    
+    if success:
+        return "Pump turned " + state
+    else:
+        return "Failed to change pump state"
 # MySQL Configuration
 
 # MySQL Configuration using mysql-connector
@@ -27,6 +77,7 @@ mysql = mysql.connector.connect(
     database='user_login'
 )
 cursor = mysql.cursor(dictionary=True)  # Use dictionary=True for fetching rows as dicts
+model_leaf_disease = tf.keras.models.load_model('trained_model.h5')
 
 # Load the trained model for fertilizer recommend
 model = joblib.load('fertilizer_app.pkl')
@@ -113,7 +164,9 @@ def dashboard():
 
 @app.route('/live-sensor-dashboard')
 def live_sensor_dashboard():
-    return render_template('live_dashboard.html')  # This is the new page
+    return render_template('live_dashboard.html')
+
+
 
 
 @app.route('/crop-recommend', methods=['GET', 'POST'])
@@ -329,6 +382,80 @@ def logout():
 @app.route('/help')
 def help_us():
     return render_template('help.html')  # The help/contact page
+
+class_name = [
+    'Apple___Apple_scab',
+    'Apple___Black_rot',
+    'Apple___Cedar_apple_rust',
+    'Apple___healthy',
+    'Blueberry___healthy',
+    'Cherry_(including_sour)___Powdery_mildew',
+    'Cherry_(including_sour)___healthy',
+    'Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot',
+    'Corn_(maize)___Common_rust_',
+    'Corn_(maize)___Northern_Leaf_Blight',
+    'Corn_(maize)___healthy',
+    'Grape___Black_rot',
+    'Grape___Esca_(Black_Measles)',
+    'Grape___Leaf_blight_(Isariopsis_Leaf_Spot)',
+    'Grape___healthy',
+    'Orange___Haunglongbing_(Citrus_greening)',
+    'Peach___Bacterial_spot',
+    'Peach___healthy',
+    'Pepper,_bell___Bacterial_spot',
+    'Pepper,_bell___healthy',
+    'Potato___Early_blight',
+    'Potato___Late_blight',
+    'Potato___healthy',
+    'Raspberry___healthy',
+    'Soybean___healthy',
+    'Squash___Powdery_mildew',
+    'Strawberry___Leaf_scorch',
+    'Strawberry___healthy',
+    'Tomato___Bacterial_spot',
+    'Tomato___Early_blight',
+    'Tomato___Late_blight',
+    'Tomato___Leaf_Mold',
+    'Tomato___Septoria_leaf_spot',
+    'Tomato___Spider_mites Two-spotted_spider_mite',
+    'Tomato___Target_Spot',
+    'Tomato___Tomato_Yellow_Leaf_Curl_Virus',
+    'Tomato___Tomato_mosaic_virus',
+    'Tomato___healthy'
+]
+
+@app.route('/predict-leaf-disease', methods=['POST'])
+def predict_leaf_disease():
+    # Setup upload folder locally inside the function
+    upload_folder = 'static/uploads'
+    os.makedirs(upload_folder, exist_ok=True)
+
+    if 'image' not in request.files:
+        return "No image part in request", 400
+
+    file = request.files['image']
+    if file.filename == '':
+        return "No selected image", 400
+
+    if file:
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(upload_folder, filename)
+        file.save(filepath)
+
+        # Load and preprocess image
+        image = tf.keras.preprocessing.image.load_img(filepath, target_size=(128, 128))
+        input_arr = tf.keras.preprocessing.image.img_to_array(image)
+        input_arr = np.expand_dims(input_arr, axis=0) / 255.0
+
+        prediction = model_leaf_disease.predict(input_arr)
+        result_index = np.argmax(prediction)
+        result_label = class_name[result_index]
+
+        return render_template('live_dashboard.html',
+                               image_path=filepath,
+                               prediction=result_label)
+
+    return "Something went wrong", 500
 
 if __name__ == '__main__':
     app.run(debug=True)
